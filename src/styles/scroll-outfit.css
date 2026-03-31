@@ -1,0 +1,210 @@
+/* ========================================
+   SCROLL OUTFIT TRANSITION SECTION
+   ======================================== */
+
+.outfit-section {
+  position: relative;
+  height: 400vh; /* 4 screens of scroll distance */
+  background: #0a0a0a;
+}
+
+.outfit-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Background grain for dark section */
+.outfit-sticky::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(30, 30, 30, 0.5) 0%, #0a0a0a 70%);
+  z-index: 0;
+}
+
+.outfit-model-container {
+  position: relative;
+  width: 100%;
+  max-width: 450px;
+  height: 85vh;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.outfit-model-img {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  will-change: opacity;
+}
+
+/* Side product cards */
+.outfit-side-cards {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.outfit-side-cards.left {
+  left: 5%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.outfit-side-cards.right {
+  right: 5%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.outfit-preview-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  padding: 1rem;
+  width: 180px;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.outfit-preview-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-4px);
+}
+
+.outfit-preview-card img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.outfit-preview-card .card-name {
+  color: rgba(255, 255, 255, 0.9);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.outfit-preview-card .card-price {
+  color: rgba(255, 255, 255, 0.5);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+}
+
+/* Outfit label */
+.outfit-label {
+  position: absolute;
+  bottom: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  text-align: center;
+}
+
+.outfit-label h3 {
+  font-family: 'Syncopate', sans-serif;
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.outfit-label p {
+  color: rgba(255, 255, 255, 0.4);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+}
+
+/* Progress dots */
+.outfit-progress {
+  position: absolute;
+  right: 3%;
+  bottom: 8%;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.outfit-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.4s ease;
+}
+
+.outfit-dot.active {
+  background: white;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* Scroll hint */
+.outfit-scroll-hint {
+  position: absolute;
+  bottom: 3%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  color: rgba(255, 255, 255, 0.3);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  animation: pulseHint 2s ease-in-out infinite;
+}
+
+@keyframes pulseHint {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .outfit-side-cards {
+    display: none;
+  }
+  
+  .outfit-model-container {
+    max-width: 350px;
+  }
+}
+
+@media (max-width: 768px) {
+  .outfit-section {
+    height: 300vh;
+  }
+
+  .outfit-model-container {
+    max-width: 280px;
+    height: 70vh;
+  }
+
+  .outfit-label h3 {
+    font-size: 0.9rem;
+  }
+
+  .outfit-progress {
+    right: 5%;
+  }
+}
