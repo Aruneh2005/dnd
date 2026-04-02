@@ -1,3 +1,10 @@
+@font-face {
+  font-family: 'BarcelonaGraffiti';
+  src: url('./assets/fonts/barcelona_graffiti.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 
 :root {
@@ -47,7 +54,6 @@ body {
   padding: 0; /* Removing padding to handle per-section framing */
   position: relative;
   background-color: var(--bg-color);
-  animation: blurIn 1.8s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
 .framed-content {
@@ -144,34 +150,30 @@ body {
   padding-top: 10vh;
 }
 
-.aura-title {
-  font-family: 'Syncopate', sans-serif;
-  font-size: 12vw;
-  font-weight: 700;
-  text-transform: lowercase;
-  letter-spacing: -0.05em;
-  line-height: 0.8;
+.hero-background-title {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  transform: translateY(-50%);
+  font-family: 'BarcelonaGraffiti', cursive;
+  font-size: 18vw;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 0.7;
   z-index: 1;
-  grid-column: 1;
-}
-
-.store-title {
-  font-family: 'Syncopate', sans-serif;
-  font-size: 12vw;
-  font-weight: 700;
-  text-transform: lowercase;
-  letter-spacing: -0.05em;
-  line-height: 0.8;
-  z-index: 1;
-  text-align: right;
-  grid-column: 3;
+  text-align: center;
+  color: #000;
+  text-shadow: 0 0 20px rgba(255,255,255,0.3);
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 .central-figure {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  /* Removed transform to avoid conflict with Framer Motion */
   height: 90vh;
   z-index: 2;
   object-fit: contain;
@@ -414,8 +416,6 @@ body {
     z-index: 3;
     color: #8fa0a0; /* Ash colour */
     text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    animation: slideUp 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards 0.8s;
-    opacity: 0;
   }
 
   .moto-text {

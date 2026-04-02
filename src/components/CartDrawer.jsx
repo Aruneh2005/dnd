@@ -13,10 +13,10 @@ export default function CartDrawer({ isOpen, onClose }) {
         <>
           <motion.div
             className="cart-overlay"
-            initial={{ opacity: 0 }}
+            initial={{ opacity: 1 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            exit={{ opacity: 1 }}
+            transition={{ duration: 0 }}
             onClick={onClose}
           />
           <motion.div
@@ -45,10 +45,10 @@ export default function CartDrawer({ isOpen, onClose }) {
                     <motion.div
                       key={`${item.id}-${item.size}`}
                       className="cart-item"
-                      initial={{ opacity: 0, x: 20 }}
+                      initial={{ opacity: 1, x: 0 }}
                       animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -20, height: 0, padding: 0 }}
-                      transition={{ duration: 0.3 }}
+                      exit={{ opacity: 0, height: 0, padding: 0 }}
+                      transition={{ duration: 0.2 }}
                       layout
                     >
                       <img

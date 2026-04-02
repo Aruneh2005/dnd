@@ -1,220 +1,241 @@
-import React, { useRef } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import React, { useState, useEffect, useCallback } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import ts1Img from '../assets/ts1.png'
 import '../styles/scroll-outfit.css'
 
 const outfits = [
-  {
-    id: 1,
-    label: 'Midnight Black',
-    subtitle: 'Essential Collection',
-    image: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?q=80&w=1974&auto=format&fit=crop',
-    products: [
-      { name: 'Black Oversized Tee', price: '$65', image: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?q=80&w=1974&auto=format&fit=crop' },
-      { name: 'Tapered Joggers', price: '$90', image: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=1997&auto=format&fit=crop' },
-    ],
-  },
-  {
-    id: 2,
-    label: 'Urban Edge',
-    subtitle: 'Street Collection',
-    image: 'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?q=80&w=1974&auto=format&fit=crop',
-    products: [
-      { name: 'Vintage Denim Jacket', price: '$120', image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?q=80&w=1935&auto=format&fit=crop' },
-      { name: 'Relaxed Canvas Cargos', price: '$110', image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=1974&auto=format&fit=crop' },
-    ],
-  },
-  {
-    id: 3,
-    label: 'Clean Lines',
-    subtitle: 'Minimal Collection',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1974&auto=format&fit=crop',
-    products: [
-      { name: 'Ivory Relaxed Tee', price: '$70', image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?q=80&w=1915&auto=format&fit=crop' },
-      { name: 'Wide Trousers', price: '$140', image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=1974&auto=format&fit=crop' },
-    ],
-  },
+  { id: 1, label: 'SHADOW REIGN', subtitle: 'DROP 01 — LOOK 1', image: ts1Img },
+  { id: 2, label: 'SHADOW REIGN', subtitle: 'DROP 01 — LOOK 2', image: ts1Img },
+  { id: 3, label: 'SHADOW REIGN', subtitle: 'DROP 01 — LOOK 3', image: ts1Img },
+  { id: 4, label: 'SHADOW REIGN', subtitle: 'DROP 01 — LOOK 4', image: ts1Img },
+  { id: 5, label: 'SHADOW REIGN', subtitle: 'DROP 01 — LOOK 5', image: ts1Img },
 ]
 
-export default function ScrollOutfitSection() {
-  const sectionRef = useRef(null)
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start start', 'end end'],
-  })
+function useCurrentTime() {
+  const [time, setTime] = useState('')
+  useEffect(() => {
+    const update = () => {
+      const now = new Date()
+      setTime(now.toLocaleTimeString('en-US', { hour12: false }))
+    }
+    update()
+    const interval = setInterval(update, 1000)
+    return () => clearInterval(interval)
+  }, [])
+  return time
+}
 
-  // Which outfit index (0-2) based on scroll progress
-  const activeIndex = useTransform(scrollYProgress, [0, 0.33, 0.34, 0.66, 0.67, 1], [0, 0, 1, 1, 2, 2])
+function useCurrentDate() {
+  const now = new Date()
+  const dd = String(now.getDate()).padStart(2, '0')
+  const mm = String(now.getMonth() + 1).padStart(2, '0')
+  const yyyy = now.getFullYear()
+  return `${dd}.${mm}.${yyyy}`
+}
+
+const labelVariants = {
+  enter: (direction) => ({
+    y: 30,
+    opacity: 0,
+  }),
+  center: {
+    y: 0,
+    opacity: 1,
+    transition: { duration: 0.6, delay: 0.2, ease: [0.19, 1, 0.22, 1] },
+  },
+  exit: {
+    y: -20,
+    opacity: 0,
+    transition: { duration: 0.3, ease: 'easeIn' },
+  },
+}
+
+export default function ScrollOutfitSection() {
+  const [[activeIndex, direction], setActiveIndex] = useState([0, 0])
+  const [isAnimating, setIsAnimating] = useState(false)
+  const [slideWidth, setSlideWidth] = useState(500)
+  const timestamp = useCurrentTime()
+  const sessionDate = useCurrentDate()
+
+  // Update slide width based on responsive breakpoints
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setSlideWidth(window.innerWidth)
+      } else {
+        setSlideWidth(500)
+      }
+    }
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const paginate = useCallback((newDirection) => {
+    if (isAnimating) return
+    setActiveIndex(([prev]) => {
+      let next = prev + newDirection
+      if (next < 0) next = outfits.length - 1
+      if (next >= outfits.length) next = 0
+      return [next, newDirection]
+    })
+  }, [isAnimating])
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === 'ArrowRight') paginate(1)
+      if (e.key === 'ArrowLeft') paginate(-1)
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [paginate])
+
+  const currentOutfit = outfits[activeIndex]
+  const prevIndex = activeIndex === 0 ? outfits.length - 1 : activeIndex - 1
+  const nextIndex = activeIndex === outfits.length - 1 ? 0 : activeIndex + 1
 
   return (
-    <section ref={sectionRef} className="outfit-section">
-      <div className="outfit-sticky">
-        {/* Model images with crossfade */}
-        <div className="outfit-model-container">
-          {outfits.map((outfit, i) => (
-            <OutfitImage key={outfit.id} outfit={outfit} index={i} scrollProgress={scrollYProgress} />
+    <section className="pv-outfit-section">
+      <div className="pv-outfit-sticky">
+        {/* Blue edge glow */}
+        <div className="pv-edge-glow" />
+
+        {/* Noise / grain overlay */}
+        <div className="pv-noise-overlay" />
+
+        {/* Background text */}
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={`bg-${activeIndex}`}
+            className="pv-bg-text"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.05 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            {currentOutfit.label}
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Side ghost thumbnails */}
+        <div className="pv-thumb pv-thumb-left">
+          <img src={outfits[prevIndex].image} alt="prev" />
+        </div>
+        <div className="pv-thumb pv-thumb-right">
+          <img src={outfits[nextIndex].image} alt="next" />
+        </div>
+
+        {/* Central outfit images with horizontal track */}
+        <div className="pv-track-container" style={{ cursor: 'grab' }}>
+          <motion.div
+            className="pv-track"
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.8}
+            onDragEnd={(e, { offset, velocity }) => {
+              const swipeThreshold = 50
+              if (offset.x < -swipeThreshold || velocity.x < -500) {
+                paginate(1)
+              } else if (offset.x > swipeThreshold || velocity.x > 500) {
+                paginate(-1)
+              }
+            }}
+            animate={{ x: -activeIndex * slideWidth }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            style={{ display: 'flex' }}
+          >
+            {outfits.map((outfit) => (
+              <div key={outfit.id} className="pv-track-item">
+                <img
+                  src={outfit.image}
+                  alt={outfit.label}
+                  className="pv-model-img"
+                  draggable="false"
+                />
+              </div>
+            ))}
+          </motion.div>
+        </div>
+
+        {/* HUD Overlays */}
+        <div className="pv-hud pv-hud-left">
+          <div className="pv-hud-title">VAULT STATUS</div>
+          <div className="pv-hud-divider" />
+          <div className="pv-hud-line">SESSION : [{sessionDate}]</div>
+          <div className="pv-hud-line">TIMESTAMP: [{timestamp}]</div>
+          <div className="pv-hud-line">ASSETS : (LOADED)</div>
+          <div className="pv-hud-spacer" />
+          <div className="pv-hud-line">DISPLAY : (1920X1080PX @ 75HZ)</div>
+          <div className="pv-hud-line">CLIENT : (DEN & DRIP)</div>
+          <div className="pv-hud-line">MARKET : (2047)</div>
+        </div>
+
+        <div className="pv-hud pv-hud-right">
+          <div className="pv-hud-title">VAULT STATUS</div>
+          <div className="pv-hud-divider" />
+          <div className="pv-hud-line">SESSION : [{sessionDate}]</div>
+          <div className="pv-hud-line">TIMESTAMP: [{timestamp}]</div>
+          <div className="pv-hud-line">ASSETS : (LOADED)</div>
+          <div className="pv-hud-spacer" />
+          <div className="pv-hud-line">DISPLAY : (1920X1080PX @ 75HZ)</div>
+          <div className="pv-hud-line">CLIENT : (DEN & DRIP)</div>
+          <div className="pv-hud-line">MARKET : (2047)</div>
+        </div>
+
+        {/* [X] markers */}
+        <div className="pv-marker pv-marker-tl">[X]</div>
+        <div className="pv-marker pv-marker-tr">[X]</div>
+        <div className="pv-marker pv-marker-bl">[X]</div>
+        <div className="pv-marker pv-marker-br">[X]</div>
+
+        {/* Outfit label */}
+        <AnimatePresence mode="wait" custom={direction}>
+          <motion.div
+            key={`label-${activeIndex}`}
+            className="pv-outfit-label"
+            variants={labelVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            custom={direction}
+          >
+            <div className="pv-label-counter">
+              {String(activeIndex + 1).padStart(2, '0')} / {String(outfits.length).padStart(2, '0')}
+            </div>
+            <h3>{currentOutfit.label}</h3>
+            <p>{currentOutfit.subtitle}</p>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Progress dots */}
+        <div className="pv-progress">
+          {outfits.map((_, i) => (
+            <button
+              key={i}
+              className={`pv-dot ${i === activeIndex ? 'active' : ''}`}
+              onClick={() => {
+                const dir = i > activeIndex ? 1 : -1
+                setActiveIndex([i, dir])
+              }}
+              aria-label={`Go to look ${i + 1}`}
+            />
           ))}
         </div>
 
-        {/* Side cards - left */}
-        <SideCards position="left" scrollProgress={scrollYProgress} outfits={outfits} />
+        {/* Bottom description */}
+        <div className="pv-bottom-desc">
+          DEN & DRIP IS A PREMIUM STREETWEAR COLLECTIVE.
+          EXPERIENCE THE CULTURE BEFORE IT ARRIVES.
+        </div>
 
-        {/* Side cards - right */}
-        <SideCards position="right" scrollProgress={scrollYProgress} outfits={outfits} />
-
-        {/* Outfit label */}
-        <OutfitLabel scrollProgress={scrollYProgress} outfits={outfits} />
-
-        {/* Progress dots */}
-        <ProgressDots scrollProgress={scrollYProgress} count={outfits.length} />
-
-        {/* Scroll hint */}
-        <div className="outfit-scroll-hint">scroll to explore</div>
+        {/* Swipe hint */}
+        <div className="pv-swipe-hint">
+          <span className="pv-swipe-arrow">←</span>
+          DRAG TO EXPLORE
+          <span className="pv-swipe-arrow">→</span>
+        </div>
       </div>
     </section>
-  )
-}
-
-function OutfitImage({ outfit, index, scrollProgress }) {
-  const ranges = [
-    [0, 0.15, 0.3],
-    [0.2, 0.4, 0.6],
-    [0.55, 0.7, 1],
-  ]
-
-  const opacity = useTransform(
-    scrollProgress,
-    index === 0
-      ? [0, 0.05, 0.28, 0.35]
-      : index === 1
-        ? [0.28, 0.35, 0.62, 0.68]
-        : [0.62, 0.68, 0.95, 1],
-    index === 0 ? [1, 1, 1, 0] : index === 1 ? [0, 1, 1, 0] : [0, 1, 1, 1]
-  )
-
-  const scale = useTransform(
-    scrollProgress,
-    index === 0
-      ? [0, 0.3]
-      : index === 1
-        ? [0.3, 0.35, 0.6]
-        : [0.6, 0.68, 1],
-    index === 0 ? [1, 1.05] : index === 1 ? [0.95, 1, 1.05] : [0.95, 1, 1]
-  )
-
-  return (
-    <motion.img
-      src={outfit.image}
-      alt={outfit.label}
-      className="outfit-model-img"
-      style={{ opacity, scale }}
-    />
-  )
-}
-
-function SideCards({ position, scrollProgress, outfits }) {
-  const productIndex = position === 'left' ? 0 : 1
-
-  return (
-    <div className={`outfit-side-cards ${position}`}>
-      {outfits.map((outfit, i) => {
-        const product = outfit.products[productIndex]
-        if (!product) return null
-
-        return (
-          <SideCard key={i} product={product} index={i} scrollProgress={scrollProgress} />
-        )
-      })}
-    </div>
-  )
-}
-
-function SideCard({ product, index, scrollProgress }) {
-  const opacity = useTransform(
-    scrollProgress,
-    index === 0
-      ? [0, 0.05, 0.28, 0.35]
-      : index === 1
-        ? [0.28, 0.38, 0.58, 0.65]
-        : [0.6, 0.7, 0.95, 1],
-    index === 0 ? [1, 1, 1, 0] : index === 1 ? [0, 1, 1, 0] : [0, 1, 1, 1]
-  )
-
-  const y = useTransform(
-    scrollProgress,
-    index === 0
-      ? [0, 0.3]
-      : index === 1
-        ? [0.3, 0.65]
-        : [0.6, 1],
-    [0, -15]
-  )
-
-  return (
-    <motion.div className="outfit-preview-card" style={{ opacity, y }}>
-      <img src={product.image} alt={product.name} />
-      <div className="card-name">{product.name}</div>
-      <div className="card-price">{product.price}</div>
-    </motion.div>
-  )
-}
-
-function OutfitLabel({ scrollProgress, outfits }) {
-  return (
-    <div className="outfit-label">
-      {outfits.map((outfit, i) => {
-        const opacity = useTransform(
-          scrollProgress,
-          i === 0
-            ? [0, 0.05, 0.28, 0.35]
-            : i === 1
-              ? [0.28, 0.38, 0.58, 0.65]
-              : [0.6, 0.7, 0.95, 1],
-          i === 0 ? [1, 1, 1, 0] : i === 1 ? [0, 1, 1, 0] : [0, 1, 1, 1]
-        )
-
-        return (
-          <motion.div key={i} style={{ opacity, position: i === 0 ? 'relative' : 'absolute', top: 0, left: 0, right: 0 }}>
-            <h3>{outfit.label}</h3>
-            <p>{outfit.subtitle}</p>
-          </motion.div>
-        )
-      })}
-    </div>
-  )
-}
-
-function ProgressDots({ scrollProgress, count }) {
-  return (
-    <div className="outfit-progress">
-      {Array.from({ length: count }).map((_, i) => (
-        <ProgressDot key={i} index={i} scrollProgress={scrollProgress} />
-      ))}
-    </div>
-  )
-}
-
-function ProgressDot({ index, scrollProgress }) {
-  const opacity = useTransform(
-    scrollProgress,
-    index === 0
-      ? [0, 0.05, 0.3, 0.35]
-      : index === 1
-        ? [0.3, 0.35, 0.63, 0.68]
-        : [0.63, 0.68, 1, 1],
-    index === 0 ? [1, 1, 1, 0.3] : index === 1 ? [0.3, 1, 1, 0.3] : [0.3, 1, 1, 1]
-  )
-
-  const scale = useTransform(
-    scrollProgress,
-    index === 0
-      ? [0, 0.05, 0.3, 0.35]
-      : index === 1
-        ? [0.3, 0.35, 0.63, 0.68]
-        : [0.63, 0.68, 1, 1],
-    index === 0 ? [1.4, 1.4, 1.4, 0.8] : index === 1 ? [0.8, 1.4, 1.4, 0.8] : [0.8, 1.4, 1.4, 1.4]
-  )
-
-  return (
-    <motion.div className="outfit-dot" style={{ opacity, scale }} />
   )
 }

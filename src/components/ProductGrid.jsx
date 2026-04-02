@@ -14,8 +14,8 @@ export default function ProductGrid() {
       <div className="products-section-header">
         <motion.h2
           className="products-section-title"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ y: 20 }}
+          whileInView={{ y: 0 }}
           transition={{ duration: 0.8, ease: [0.19, 1, 0.22, 1] }}
           viewport={{ once: true }}
         >
@@ -24,8 +24,8 @@ export default function ProductGrid() {
 
         <motion.div
           className="category-filters"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ y: 10 }}
+          whileInView={{ y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
           viewport={{ once: true }}
         >

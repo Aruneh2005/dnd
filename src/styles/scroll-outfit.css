@@ -1,210 +1,402 @@
 /* ========================================
-   SCROLL OUTFIT TRANSITION SECTION
+   PIXELVAULT-STYLE HORIZONTAL OUTFIT CAROUSEL
    ======================================== */
 
-.outfit-section {
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+/* ---- Section & Sticky Container ---- */
+.pv-outfit-section {
   position: relative;
-  height: 400vh; /* 4 screens of scroll distance */
-  background: #0a0a0a;
+  height: 100vh;
+  background: #050505;
+  overflow: hidden;
 }
 
-.outfit-sticky {
-  position: sticky;
-  top: 0;
+.pv-outfit-sticky {
+  position: relative;
   height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  background: #050505;
+  user-select: none;
 }
 
-/* Background grain for dark section */
-.outfit-sticky::before {
+/* ---- Blue edge glow / vignette ---- */
+.pv-edge-glow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 120px 40px rgba(0, 0, 0, 0.95),
+    inset 0 0 300px 80px rgba(0, 0, 0, 0.7);
+  background:
+    radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, 0.85) 100%);
+}
+
+.pv-edge-glow::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background:
+    linear-gradient(0deg, transparent 15%, rgba(30, 80, 180, 0.1) 50%, transparent 85%),
+    linear-gradient(90deg, transparent 15%, rgba(30, 80, 180, 0.1) 50%, transparent 85%);
+  animation: edgeGlowPulse 6s ease-in-out infinite;
+}
+
+.pv-edge-glow::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center, rgba(30, 30, 30, 0.5) 0%, #0a0a0a 70%);
-  z-index: 0;
+  border: 1px solid rgba(60, 120, 220, 0.06);
+  box-shadow:
+    0 0 80px rgba(40, 100, 200, 0.06),
+    inset 0 0 80px rgba(40, 100, 200, 0.04);
 }
 
-.outfit-model-container {
+@keyframes edgeGlowPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* ---- Noise / grain overlay ---- */
+.pv-noise-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+  opacity: 0.12;
+  filter: contrast(150%) brightness(80%);
+  mix-blend-mode: overlay;
+}
+
+/* ---- Background text ---- */
+.pv-bg-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'BarcelonaGraffiti', 'Syncopate', sans-serif;
+  font-size: 14vw;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 0.85;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.05);
+  white-space: nowrap;
+  z-index: 1;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+/* ---- Central model track ---- */
+.pv-track-container {
   position: relative;
   width: 100%;
-  max-width: 450px;
-  height: 85vh;
-  z-index: 2;
+  max-width: 500px;
+  height: 78vh;
+  z-index: 3;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: visible;
 }
 
-.outfit-model-img {
-  position: absolute;
+.pv-track {
+  display: flex;
+  height: 100%;
+  width: 100%; /* Each item will be full container width */
+  cursor: grab;
+  will-change: transform;
+}
+
+.pv-track:active {
+  cursor: grabbing;
+}
+
+.pv-track-item {
+  min-width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pv-model-img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   object-position: center bottom;
-  will-change: opacity;
+  filter: brightness(0.95) contrast(1.05);
+  pointer-events: none;
 }
 
-/* Side product cards */
-.outfit-side-cards {
+/* ---- Thumbnail ghost previews ---- */
+.pv-thumb {
   position: absolute;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  z-index: 2;
+  width: 130px;
+  height: 200px;
+  overflow: hidden;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
 }
 
-.outfit-side-cards.left {
-  left: 5%;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.outfit-side-cards.right {
-  right: 5%;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.outfit-preview-card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 1rem;
-  padding: 1rem;
-  width: 180px;
-  cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
-}
-
-.outfit-preview-card:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-4px);
-}
-
-.outfit-preview-card img {
+.pv-thumb img {
   width: 100%;
-  aspect-ratio: 3 / 4;
-  object-fit: cover;
-  border-radius: 0.5rem;
-  margin-bottom: 0.75rem;
+  height: 100%;
+  object-fit: contain;
+  filter: brightness(0.2) saturate(0.4) blur(1px);
 }
 
-.outfit-preview-card .card-name {
-  color: rgba(255, 255, 255, 0.9);
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.8rem;
-  font-weight: 500;
+.pv-thumb-left {
+  left: 3%;
+  bottom: 18%;
+}
+
+.pv-thumb-right {
+  right: 3%;
+  bottom: 18%;
+}
+
+/* ---- HUD Overlays ---- */
+.pv-hud {
+  position: absolute;
+  z-index: 5;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.3);
+  line-height: 1.7;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.pv-hud-left {
+  left: 3%;
+  top: 30%;
+}
+
+.pv-hud-right {
+  right: 3%;
+  top: 53%;
+  text-align: right;
+}
+
+.pv-hud-title {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.15em;
   margin-bottom: 0.25rem;
 }
 
-.outfit-preview-card .card-price {
-  color: rgba(255, 255, 255, 0.5);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.75rem;
+.pv-hud-divider {
+  width: 80px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.12), transparent);
+  margin-bottom: 0.75rem;
 }
 
-/* Outfit label */
-.outfit-label {
+.pv-hud-right .pv-hud-divider {
+  margin-left: auto;
+  background: linear-gradient(270deg, rgba(255,255,255,0.12), transparent);
+}
+
+.pv-hud-line {
+  font-size: 0.58rem;
+  color: rgba(255, 255, 255, 0.25);
+  letter-spacing: 0.06em;
+}
+
+.pv-hud-spacer {
+  height: 0.8rem;
+}
+
+/* ---- [X] Markers ---- */
+.pv-marker {
   position: absolute;
-  bottom: 8%;
+  z-index: 5;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.18);
+  letter-spacing: 0.1em;
+  pointer-events: none;
+}
+
+.pv-marker-tl { top: 12%; left: 10%; }
+.pv-marker-tr { top: 12%; right: 10%; }
+.pv-marker-bl { bottom: 16%; left: 12%; }
+.pv-marker-br { bottom: 12%; right: 3%; }
+
+/* ---- Outfit label ---- */
+.pv-outfit-label {
+  position: absolute;
+  top: 9%;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 4;
+  z-index: 6;
   text-align: center;
+  pointer-events: none;
 }
 
-.outfit-label h3 {
-  font-family: 'Syncopate', sans-serif;
-  font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.9);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  margin-bottom: 0.5rem;
+.pv-label-counter {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem;
+  color: rgba(255, 255, 255, 0.2);
+  letter-spacing: 0.25em;
+  margin-bottom: 0.6rem;
 }
 
-.outfit-label p {
-  color: rgba(255, 255, 255, 0.4);
-  font-family: 'Space Mono', monospace;
+.pv-outfit-label h3 {
+  font-family: 'Share Tech Mono', monospace;
   font-size: 0.75rem;
-  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
 }
 
-/* Progress dots */
-.outfit-progress {
+.pv-outfit-label p {
+  font-family: 'Share Tech Mono', monospace;
+  color: rgba(255, 255, 255, 0.22);
+  font-size: 0.58rem;
+  letter-spacing: 0.15em;
+}
+
+/* ---- Progress dots ---- */
+.pv-progress {
   position: absolute;
   right: 3%;
-  bottom: 8%;
-  z-index: 5;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 6;
   display: flex;
+  direction: column;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.6rem;
   align-items: center;
 }
 
-.outfit-dot {
-  width: 8px;
-  height: 8px;
+.pv-dot {
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  transition: all 0.4s ease;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+  padding: 0;
 }
 
-.outfit-dot.active {
-  background: white;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+.pv-dot:hover {
+  background: rgba(255, 255, 255, 0.35);
 }
 
-/* Scroll hint */
-.outfit-scroll-hint {
+.pv-dot.active {
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+  transform: scale(1.4);
+}
+
+/* ---- Bottom description ---- */
+.pv-bottom-desc {
   position: absolute;
-  bottom: 3%;
+  bottom: 3.5%;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 5;
-  color: rgba(255, 255, 255, 0.3);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.65rem;
-  letter-spacing: 0.15em;
+  z-index: 6;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.52rem;
+  color: rgba(255, 255, 255, 0.18);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  animation: pulseHint 2s ease-in-out infinite;
+  text-align: center;
+  max-width: 480px;
+  line-height: 1.8;
+  pointer-events: none;
 }
 
-@keyframes pulseHint {
+/* ---- Swipe hint ---- */
+.pv-swipe-hint {
+  position: absolute;
+  bottom: 7%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.55rem;
+  color: rgba(255, 255, 255, 0.2);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  pointer-events: none;
+  animation: hintPulse 3s ease-in-out infinite;
+}
+
+.pv-swipe-arrow {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.15);
+  animation: arrowSlide 2s ease-in-out infinite;
+}
+
+@keyframes hintPulse {
   0%, 100% { opacity: 0.3; }
   50% { opacity: 0.7; }
 }
 
-/* Responsive */
+@keyframes arrowSlide {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
+}
+
+/* ---- Responsive ---- */
 @media (max-width: 1024px) {
-  .outfit-side-cards {
-    display: none;
+  .pv-hud { display: none; }
+  .pv-marker { display: none; }
+
+  .pv-thumb {
+    width: 80px;
+    height: 130px;
   }
-  
-  .outfit-model-container {
-    max-width: 350px;
+
+  .pv-track-container {
+    max-width: 400px;
+  }
+
+  .pv-bg-text {
+    font-size: 18vw;
   }
 }
 
 @media (max-width: 768px) {
-  .outfit-section {
-    height: 300vh;
+  .pv-track-container {
+    max-width: 300px;
+    height: 60vh;
   }
 
-  .outfit-model-container {
-    max-width: 280px;
-    height: 70vh;
+  .pv-thumb { display: none; }
+
+  .pv-bg-text {
+    font-size: 22vw;
   }
 
-  .outfit-label h3 {
-    font-size: 0.9rem;
+  .pv-outfit-label h3 {
+    font-size: 0.65rem;
   }
 
-  .outfit-progress {
-    right: 5%;
+  .pv-bottom-desc {
+    font-size: 0.45rem;
+    max-width: 260px;
+  }
+
+  .pv-progress {
+    right: 4%;
+    gap: 0.5rem;
   }
 }

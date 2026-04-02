@@ -6,8 +6,8 @@ import '../styles/product-grid.css'
 export default function ProductCard({ product, index }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ y: 20 }}
+      whileInView={{ y: 0 }}
       transition={{
         duration: 0.7,
         delay: (index % 4) * 0.1,

@@ -39,19 +39,19 @@ export default function ProductDetailPage() {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
+      initial={{ opacity: 1 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.4 }}
+      exit={{ opacity: 1 }}
+      transition={{ duration: 0 }}
     >
       <div className="product-detail-page">
         <div className="product-detail-container">
           {/* Image Gallery */}
           <motion.div
             className="product-gallery"
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, ease: [0.19, 1, 0.22, 1] }}
+            initial={{ x: 0 }}
+            animate={{ x: 0 }}
+            transition={{ duration: 0 }}
           >
             <button className="back-btn" onClick={() => navigate(-1)}>
               <ArrowLeft size={16} /> back
@@ -61,9 +61,9 @@ export default function ProductDetailPage() {
               src={product.images[activeImage]}
               alt={product.name}
               className="product-main-image"
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4 }}
+              initial={{ scale: 1 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0 }}
             />
             <div className="product-thumbnail-row">
               {product.images.map((img, i) => (
@@ -81,9 +81,9 @@ export default function ProductDetailPage() {
           {/* Product Info */}
           <motion.div
             className="product-info"
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.15, ease: [0.19, 1, 0.22, 1] }}
+            initial={{ x: 0 }}
+            animate={{ x: 0 }}
+            transition={{ duration: 0 }}
           >
             <span className="product-detail-category">{product.category}</span>
             <h1 className="product-detail-name">{product.name}</h1>

@@ -11,42 +11,56 @@ export default function HomePage() {
 
   // Hero animations based on scroll
   const heroScale = useTransform(scrollYProgress, [0, 0.1], [1, 0.9])
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.08], [1, 0])
-  const blurValue = useTransform(scrollYProgress, [0, 0.08], [0, 15])
-  const heroBlur = useMotionTemplate`blur(${blurValue}px)`
+
+  // Parallax animations - Man (figure) moves up slower, Titles move faster
+  // Man slides from down to up with a lower scroll speed relative to the background text
+  const figureYOffset = useTransform(scrollYProgress, [0, 0.4], [0, -150])
+  const titleY = useTransform(scrollYProgress, [0, 0.4], [0, -300])
+  const textY = useTransform(scrollYProgress, [0, 0.2], [0, -50])
+
+  // Combine centering and parallax
+  const figureY = useMotionTemplate`calc(-50% + ${figureYOffset}px)`
 
   return (
     <>
-      {/* Hero Section - PRESERVED FROM ORIGINAL */}
       <div className="framed-content-wrapper" style={{ height: '100vh' }}>
         <motion.div
           className="framed-content"
           style={{
             scale: heroScale,
-            opacity: heroOpacity,
-            filter: heroBlur,
           }}
         >
           <main className="hero-section">
-            <h1 className="aura-title">den</h1>
-            <img
+            <motion.h1 
+              className="hero-background-title"
+              style={{ y: titleY }}
+            >
+              den & drip
+            </motion.h1>
+            <motion.img
               src={manImg}
               alt="den & drip Central Figure"
               className="central-figure"
+              style={{ x: "-50%", y: figureY }}
             />
-            <h1 className="store-title">drip</h1>
-            <div className="left-content">
+            <motion.div 
+              className="left-content"
+              style={{ y: textY }}
+            >
               <div className="moto-text">Your second skin</div>
               <p className="desc-text">
                 Modern silhouettes, natural fabrics, and honest design.
                 For those who choose simplicity and quality.
               </p>
-            </div>
+            </motion.div>
 
-            <div className="scroll-indicator">
+            <motion.div 
+              className="scroll-indicator"
+              style={{ y: textY }}
+            >
               <span>scroll to explore</span>
               <ChevronRight style={{ transform: 'rotate(90deg)' }} size={16} />
-            </div>
+            </motion.div>
           </main>
         </motion.div>
       </div>
