@@ -1,5 +1,5 @@
 import React from 'react'
-import { motion, useScroll, useTransform, useMotionTemplate } from 'framer-motion'
+import { motion, useScroll, useTransform, useMotionTemplate, color } from 'framer-motion'
 import { ChevronRight } from 'lucide-react'
 import manImg from '../assets/man.png'
 import ScrollOutfitSection from '../components/ScrollOutfitSection'

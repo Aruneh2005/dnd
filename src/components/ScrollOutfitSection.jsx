@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ts1Img from '../assets/ts1.png'
 import '../styles/scroll-outfit.css'
@@ -51,45 +51,111 @@ const labelVariants = {
 }
 
 export default function ScrollOutfitSection() {
-  const [[activeIndex, direction], setActiveIndex] = useState([0, 0])
-  const [isAnimating, setIsAnimating] = useState(false)
-  const [slideWidth, setSlideWidth] = useState(500)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [direction, setDirection] = useState(0)
+  const [virtualIndex, setVirtualIndex] = useState(1)
+  const [isTransitioning, setIsTransitioning] = useState(true)
+  const wheelLockRef = useRef(false)
+  const autoScrollCooldownRef = useRef(null)
   const timestamp = useCurrentTime()
   const sessionDate = useCurrentDate()
+  const total = outfits.length
+  const loopedOutfits = useMemo(
+    () => [outfits[total - 1], ...outfits, outfits[0]],
+    [total]
+  )
 
-  // Update slide width based on responsive breakpoints
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setSlideWidth(window.innerWidth)
-      } else {
-        setSlideWidth(500)
-      }
+  const applyCooldown = useCallback(() => {
+    if (autoScrollCooldownRef.current) {
+      clearTimeout(autoScrollCooldownRef.current)
     }
-    handleResize()
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
+    autoScrollCooldownRef.current = setTimeout(() => {
+      autoScrollCooldownRef.current = null
+    }, 3000)
   }, [])
 
-  const paginate = useCallback((newDirection) => {
-    if (isAnimating) return
-    setActiveIndex(([prev]) => {
-      let next = prev + newDirection
-      if (next < 0) next = outfits.length - 1
-      if (next >= outfits.length) next = 0
-      return [next, newDirection]
+  const paginate = useCallback((newDirection, fromUser = false) => {
+    if (fromUser) applyCooldown()
+    setDirection(newDirection)
+    setIsTransitioning(true)
+    setVirtualIndex((prev) => prev + newDirection)
+  }, [applyCooldown])
+
+  const moveToIndex = useCallback((targetIndex) => {
+    if (targetIndex === activeIndex) return
+    const dir = targetIndex > activeIndex ? 1 : -1
+    setDirection(dir)
+    setIsTransitioning(true)
+    setVirtualIndex(targetIndex + 1)
+    applyCooldown()
+  }, [activeIndex, applyCooldown])
+
+  const handleTrackTransitionEnd = useCallback(() => {
+    if (virtualIndex === 0) {
+      setIsTransitioning(false)
+      setVirtualIndex(total)
+      setActiveIndex(total - 1)
+      return
+    }
+
+    if (virtualIndex === total + 1) {
+      setIsTransitioning(false)
+      setVirtualIndex(1)
+      setActiveIndex(0)
+      return
+    }
+
+    setActiveIndex(virtualIndex - 1)
+  }, [total, virtualIndex])
+
+  useEffect(() => {
+    if (isTransitioning) return
+    const raf = requestAnimationFrame(() => {
+      setIsTransitioning(true)
     })
-  }, [isAnimating])
+    return () => cancelAnimationFrame(raf)
+  }, [isTransitioning])
 
   // Keyboard navigation
   useEffect(() => {
     const handleKey = (e) => {
-      if (e.key === 'ArrowRight') paginate(1)
-      if (e.key === 'ArrowLeft') paginate(-1)
+      if (e.key === 'ArrowRight') paginate(1, true)
+      if (e.key === 'ArrowLeft') paginate(-1, true)
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
   }, [paginate])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!autoScrollCooldownRef.current) {
+        paginate(1)
+      }
+    }, 2600)
+
+    return () => {
+      clearInterval(interval)
+      if (autoScrollCooldownRef.current) {
+        clearTimeout(autoScrollCooldownRef.current)
+      }
+    }
+  }, [paginate])
+
+  const handleWheel = (e) => {
+    if (wheelLockRef.current) return
+
+    // Only horizontal wheel movement should control the carousel.
+    const horizontalDelta = e.deltaX
+    if (Math.abs(horizontalDelta) < 8) return
+
+    e.preventDefault()
+
+    wheelLockRef.current = true
+    paginate(horizontalDelta > 0 ? 1 : -1, true)
+    setTimeout(() => {
+      wheelLockRef.current = false
+    }, 380)
+  }
 
   const currentOutfit = outfits[activeIndex]
   const prevIndex = activeIndex === 0 ? outfits.length - 1 : activeIndex - 1
@@ -127,26 +193,24 @@ export default function ScrollOutfitSection() {
         </div>
 
         {/* Central outfit images with horizontal track */}
-        <div className="pv-track-container" style={{ cursor: 'grab' }}>
-          <motion.div
+        <div className="pv-track-container" onWheel={handleWheel}>
+          <div
             className="pv-track"
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.8}
-            onDragEnd={(e, { offset, velocity }) => {
-              const swipeThreshold = 50
-              if (offset.x < -swipeThreshold || velocity.x < -500) {
-                paginate(1)
-              } else if (offset.x > swipeThreshold || velocity.x > 500) {
-                paginate(-1)
-              }
+            onTransitionEnd={handleTrackTransitionEnd}
+            style={{
+              transform: `translate3d(${(1 - virtualIndex) * (100 / 3)}%, 0, 0)`,
+              transition: isTransitioning
+                ? 'transform 520ms cubic-bezier(0.19, 1, 0.22, 1)'
+                : 'none',
             }}
-            animate={{ x: -activeIndex * slideWidth }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            style={{ display: 'flex' }}
           >
-            {outfits.map((outfit) => (
-              <div key={outfit.id} className="pv-track-item">
+            {loopedOutfits.map((outfit, i) => {
+              const isCenter = i === virtualIndex
+              return (
+                <div
+                  key={`${outfit.id}-${i}`}
+                  className={`pv-track-item ${isCenter ? 'is-center' : 'is-side'}`}
+                >
                 <img
                   src={outfit.image}
                   alt={outfit.label}
@@ -154,8 +218,9 @@ export default function ScrollOutfitSection() {
                   draggable="false"
                 />
               </div>
-            ))}
-          </motion.div>
+              )
+            })}
+          </div>
         </div>
 
         {/* HUD Overlays */}
@@ -214,10 +279,7 @@ export default function ScrollOutfitSection() {
             <button
               key={i}
               className={`pv-dot ${i === activeIndex ? 'active' : ''}`}
-              onClick={() => {
-                const dir = i > activeIndex ? 1 : -1
-                setActiveIndex([i, dir])
-              }}
+              onClick={() => moveToIndex(i)}
               aria-label={`Go to look ${i + 1}`}
             />
           ))}
@@ -232,7 +294,7 @@ export default function ScrollOutfitSection() {
         {/* Swipe hint */}
         <div className="pv-swipe-hint">
           <span className="pv-swipe-arrow">←</span>
-          DRAG TO EXPLORE
+          SCROLL TO EXPLORE
           <span className="pv-swipe-arrow">→</span>
         </div>
       </div>
